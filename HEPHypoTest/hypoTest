@@ -1,0 +1,171 @@
+######################## Disclaimer ############################
+
+ Please first check the README file to have a general idea of how the code works, and how and which files should go inside which folder.
+
+########################## Notes ###############################
+
+There are a few things to tweak on these current scripts. First, it does not use data if provided, it always generates pseudodata and uses it in the tests. Second of all, there is a problem saving the calculated p-values on the output file, though the results of each test are visible in the command prompt as each of them are carried out. 
+
+
+
+
+
+
+#################### Variable Declaration ######################
+
+#Declare the name of the .root file containing the data histograms inside each folder in DATA:
+
+dataFileName=pseudoData.root
+
+
+
+#Declare the name of the data histogram inside dataFileName:
+
+dataHistName=PseudoData
+
+
+
+#WARNING: Do not change this parameter, no matter the backgrounds used, their sum will always be stored in a file named totalbkg.root.
+
+bkgFileName=totalbkg.root
+
+
+
+#Declare the name the background histograms have inside each background file:
+
+bkgHistName=transverse_mass_lumi
+
+
+
+#Declare the name of the .root file containing the signal histograms inside each folder in SIGNAL:
+
+sigFileName=signal.root
+
+
+
+#Declare the name of the signal histogram inside sigFileName:
+
+sigHistName=transverse_mass_lumi
+
+
+
+#Declare the type of calculator to be used (please refrain from using calculator 1 as the use of priors is yet to be implemented): 
+    
+    #  calculator = 0 Freq calculator: Generate toys using nuisance parameter at their conditional ML estimate ( θ = θ_hat) by fitting them to the observed data. Treat constraint terms in the likelihood (e.g. systematic errors) as auxiliary measurements. introduce global observables which will be varied (tossed) for each pseudo-experiment
+    #  calculator = 1 Hybrid calculator: Nuisance parameters are integrated using their pdf (the constraint term) which is interpreted as a Bayesian prior
+    #  calculator = 2 Asymptotic calculator, SDFHSDOFHDSOPIFHDSOFHDSOFUIHDSOFHOSDIFHDOIFHOFHSFIHsólo se puede con one sided limits
+    #  calculator = 3 Asymptotic calculator using nominal Asimov data sets (not using fitted parameter values but nominal ones)
+
+calculator=2
+
+
+
+#Declare the type of statistic to be used on the hypotheses tests for discovery: 
+    
+    #    t_stat_type = 0 LEP standard simple likelihood ratio L_{s+b}(mu=1)/L_{b}(mu=0)
+    #    t_stat_type = 1 Tevatron   ratio of profiled likelihood  L_{s+b}(mu=1,nu_hat)/L_{b}(mu=0,nu'_hat)
+    #    t_Stat_type = 2 Profile Likelihood   \lambda(mu)=L_{s+b}(mu,nu_hat)/L_{b}(mu_hat,nu'_hat)
+    #    t_stat_type = 3 Profile Likelihood one sided (i.e. = 0 if mu_hat < 0)
+
+t_stat_type=2
+
+
+
+#Number of toys to be used by the frequentist calculator (if selected):
+
+ntoys=2000
+
+
+
+#This parameter indicates if a new file to store the hypothesis test results needs to be created, please leave it as it is. 
+
+firsttest=0
+
+
+
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+
+#There is no need to modify anything beyond this point
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+
+
+
+
+cd BACKGROUND #Access the BACKGROUND folder
+
+#This 'if' checks if a file named 'totalbkg.root' exists, if it does, it deletes it and creates it again by adding the histograms in all .root files in the folder. If it doesn't, #it crates it.
+
+if [ -s "./totalbkg.root" ]; then 
+        rm totalbkg.root
+        hadd -f totalbkg.root *.root
+else
+        hadd -f totalbkg.root *.root
+fi
+
+cp totalbkg.root ../SIGNAL/ #the file 'totalbkg.root' is copied.
+
+cd .. #Goes back to the main folder.
+
+cd SIGNAL #Access the SIGNAL folder.
+
+ls -d */ > sig_directories #Creates a file named 'sig_directories'. This file contains the names of all folders inside SIGNAL.
+
+
+
+#This loop over 'sig_directories' copies the file 'totalbkg.root' inside each folder in SIGNAL.
+
+for i in `cat sig_directories` 
+do
+	cp totalbkg.root $i; 	
+	 
+done 
+
+
+
+#This loop copies the scripts 'getHisto.C' and 'generatePseudoData.C' inside each folder in SIGNAL.
+
+for j in `cat sig_directories` 
+do
+	cp getHisto.C $j;
+	cp generatePseudoData.C $j; 	
+	 
+done 
+
+
+#This loop 
+
+
+
+for k in `cat sig_directories` 
+do
+	if [ $firsttest == 0 ]; then
+		cp chist.C $k;
+		cp StandardHypoTestDemo.C $k;
+		cd $k;
+		root getHisto.C
+		hadd -f bkgplussignal.root signal.root totalbkg.root
+		root generatePseudoData.C
+		root -l -b 'chist.C("'$dataFileName'","'$dataHistName'","'$bkgFileName'","'$bkgHistName'","'$sigFileName'","'$sigHistName'",'$calculator','$t_stat_type','$ntoys',0)';
+		cp resultsHypoTestDisc.root ..
+		firsttest=1;
+		cd .. 
+	else
+		cp chist.C $k;
+		cp StandardHypoTestDemo.C $k;
+		cp resultsHypoTestDisc.root $k;		
+		cd $k;
+		root getHisto.C
+		hadd -f bkgplussignal.root signal.root totalbkg.root
+		root generatePseudoData.C
+		root -l -b 'chist.C("'$dataFileName'","'$dataHistName'","'$bkgFileName'","'$bkgHistName'","'$sigFileName'","'$sigHistName'",'$calculator','$t_stat_type','$ntoys',1)';
+		cp resultsHypoTestDisc.root ..
+		cd ..
+	fi	
+	 
+done 
+
+
+
+
