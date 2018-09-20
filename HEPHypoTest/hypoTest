@@ -36,14 +36,18 @@ bkgFileName=totalbkg.root
 bkgHistName=transverse_mass_lumi
 
 
-
 #Declare the name of the .root file containing the signal histograms inside each folder in SIGNAL:
+
+sigRootName=normalizedHistos_signal.root
+
+
+#Declare the name of the .root file containing the isolated signal histogram inside each folder in SIGNAL (there is no need to modify this parameter):
 
 sigFileName=signal.root
 
 
 
-#Declare the name of the signal histogram inside sigFileName:
+#Declare the name of the signal histogram inside sigRootName (and sigFileName):
 
 sigHistName=transverse_mass_lumi
 
@@ -144,7 +148,7 @@ do
 		cp chist.C $k;
 		cp StandardHypoTestDemo.C $k;
 		cd $k;
-		root getHisto.C
+		root 'getHisto.C("'$sigRootName'","'sigHistName'")';
 		hadd -f bkgplussignal.root signal.root totalbkg.root
 		root generatePseudoData.C
 		root -l -b 'chist.C("'$dataFileName'","'$dataHistName'","'$bkgFileName'","'$bkgHistName'","'$sigFileName'","'$sigHistName'",'$calculator','$t_stat_type','$ntoys',0)';
@@ -156,7 +160,7 @@ do
 		cp StandardHypoTestDemo.C $k;
 		cp resultsHypoTestDisc.root $k;		
 		cd $k;
-		root getHisto.C
+		root 'getHisto.C("'$sigRootName'","'sigHistName'")';
 		hadd -f bkgplussignal.root signal.root totalbkg.root
 		root generatePseudoData.C
 		root -l -b 'chist.C("'$dataFileName'","'$dataHistName'","'$bkgFileName'","'$bkgHistName'","'$sigFileName'","'$sigHistName'",'$calculator','$t_stat_type','$ntoys',1)';
