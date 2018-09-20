@@ -28,16 +28,17 @@ using namespace std;
 using namespace RooFit;
 using namespace RooStats;
 
-void getHisto(string fileNameOutput="./signal.root"){
+void getHisto(string sigRootName= "normalizedHistos_signal.root",
+	      string sigHistName = "transverse_mass_lumi"){
 
-TString s_sig = "normalizedHistos_signal.root";
-TFile *_filesig = TFile::Open(s_sig);
-TH1 *mySignal = (TH1*)_filesig->Get("transverse_mass_lumi");
+  //TString s_sig = "normalizedHistos_signal.root";
+  TFile *_filesig = TFile::Open(sigRootName.c_str());
+  TH1 *mySignal = (TH1*)_filesig->Get(sigHistName.c_str());
 
 mySignal->SetTitle("signal"); 
 
 
-TFile* f_mySignal = new TFile(fileNameOutput.c_str(),"RECREATE") ;
+TFile* f_mySignal = new TFile("signal.root","RECREATE") ;
 
 mySignal->Write() ;
 f_mySignal->Close() ;
