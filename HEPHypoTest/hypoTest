@@ -148,7 +148,7 @@ do
 		cp chist.C $k;
 		cp StandardHypoTestDemo.C $k;
 		cd $k;
-		root 'getHisto.C("'$sigRootName'","'sigHistName'")';
+		root 'getHisto.C("'$sigRootName'","'$sigHistName'")';
 		hadd -f bkgplussignal.root signal.root totalbkg.root
 		root generatePseudoData.C
 		root -l -b 'chist.C("'$dataFileName'","'$dataHistName'","'$bkgFileName'","'$bkgHistName'","'$sigFileName'","'$sigHistName'",'$calculator','$t_stat_type','$ntoys',0)';
@@ -160,7 +160,7 @@ do
 		cp StandardHypoTestDemo.C $k;
 		cp resultsHypoTestDisc.root $k;		
 		cd $k;
-		root 'getHisto.C("'$sigRootName'","'sigHistName'")';
+		root 'getHisto.C("'$sigRootName'","'$sigHistName'")';
 		hadd -f bkgplussignal.root signal.root totalbkg.root
 		root generatePseudoData.C
 		root -l -b 'chist.C("'$dataFileName'","'$dataHistName'","'$bkgFileName'","'$bkgHistName'","'$sigFileName'","'$sigHistName'",'$calculator','$t_stat_type','$ntoys',1)';
